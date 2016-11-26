@@ -30,8 +30,10 @@ function r=vyberRblandem(As,b)
     // {bj/ajs : ajs > 0}
     bjBYajs = b(As>0)./As(As>0);
     // r pro ktere plati br/ars = min
-    mza_r = find(bjBYajs, min(bjBYajs));
-    [v,r] = min(B(mza_r));
+    ran = 1:size(b,1);
+    ran = ran(As>0);
+    mza_r = ran(bjBYajs == min(bjBYajs));
+    r = min(B(mza_r));
 endfunction
 
 function [r,s]=blandovoPravidlo(sTab,B)
@@ -47,13 +49,14 @@ endfunction
 
 // cp = ct-ctb.iAb.A
 // Ap = iAb.A
-function res=sNeomezena(As)
+function res=isNeomezena(As)
     res = max(As) <= 0;
 endfunction
 
 function A=eliminuj(A,r,s)
     // pripravim si matici radkovych uprav
-    T = eye(size(A,1));
+    d = size(A,1);
+    T = eye(d,d);
     T(:,r) = -A(:,s)./A(r,s);
     T(r,r) = 1/A(r,s);
     
@@ -64,8 +67,10 @@ endfunction
 function [sTab,B,optimalni] = simplexovaMetoda(sTab,B)
     optimalni = %f;
     neomezena = %f;
+    omezeni = 15;
     
-    while ~(optimalni || neomezena)
+    while ~(optimalni | neomezena) | omezeni > 0
+        omezeni = omezeni - 1;
         c = sTab2c(sTab);
         if min(c) >= 0
             optimalni = %t;
@@ -75,7 +80,7 @@ function [sTab,B,optimalni] = simplexovaMetoda(sTab,B)
                 neomezena = %t;
             else
                 // vyber r podle Blanda
-                r = vyberRblandem(sTab2As(sTab,s),b);
+                r = vyberRblandem(sTab2As(sTab,s),sTab2b(sTab));
                 
                 // eliminuj pivotem ars
                 sTab = eliminuj(sTab,r,s);
@@ -86,6 +91,7 @@ function [sTab,B,optimalni] = simplexovaMetoda(sTab,B)
                 // ukaz co mas v hlave
                 disp(sTab);
                 disp(B);
+                //input('press a key...');
             end
         end
     end
@@ -95,4 +101,24 @@ function [sTab,B,optimalni] = simplexovaMetoda(sTab,B)
     else
         disp('uloha je neomezena')
     end
+endfunction
+
+function [sTab,B]=simplexKrok(sTab,B)
+    c = sTab2c(sTab);
+    // vyber s,r podle Blanda
+    s = vyberSblandem(c);
+    r = vyberRblandem(sTab2As(sTab,s),sTab2b(sTab));
+    
+    // eliminuj pivotem ars
+    sTab = eliminuj(sTab,r,s);
+    
+    // doupresni bazi
+    B(r) = s;
+    
+    // ukaz co mas v hlave
+    disp(sTab);
+    disp(B);
+endfunction
+
+function vytahniXb(sTab)
 endfunction
