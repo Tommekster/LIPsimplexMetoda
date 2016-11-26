@@ -120,5 +120,7 @@ function [sTab,B]=simplexKrok(sTab,B)
     disp(B);
 endfunction
 
-function vytahniXb(sTab)
+function xb=vytahniXb(sTab,B)
+    xb = zeros(size(sTab,2)-1,1); // pripravime nulovy vektor
+    xb(B) = sTab(1:$-1,$); // spravna mista vyplnime cilsy
 endfunction
