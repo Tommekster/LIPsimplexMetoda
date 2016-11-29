@@ -129,6 +129,10 @@ function xb=vytahniXb(sTab,B)
     xb(B) = sTab(1:$-1,$); // spravna mista vyplnime cilsy
 endfunction
 
+function h = hodnotaUceloveFce(sTab)
+    h = -sTab($,$);
+endfunction
+
 function [sTab,B]=prvniFazeRozUlohy(A,b)
     [m,n] = size(A);
     
@@ -190,9 +194,9 @@ function sTab=tabulkaPuvodniUlohy(subTab,c,B)
     sTab = subTab;
     sTab($,1:n) = c;
     sTab($,$) = 0; // -h=-(ctb.xbb)=-(ct.xb) 
-    disp(sTab);
+    //disp(sTab);
     for r=1:m
-        disp([r,B(r)]);
+        //disp([r,B(r)]);
         sTab = eliminuj(sTab,r,B(r));
     end
 endfunction
