@@ -28,12 +28,12 @@ endfunction
 function r=vyberRblandem(As,b)
     // r t,z Br = min{Bk : bk/aks = min{bj/ajs : ajs > 0}, aks > 0}
     // {bj/ajs : ajs > 0}
-    bjBYajs = b(As>0)./As(As>0);
-    // r pro ktere plati br/ars = min
     ran = 1:size(b,1);
     ran = ran(As>0);
+    bjBYajs = b(ran)./As(ran);
+    // r pro ktere plati br/ars = min
     mza_r = ran(bjBYajs == min(bjBYajs));
-    r = min(B(mza_r));
+    r = min(mza_r);
 endfunction
 
 function [r,s]=blandovoPravidlo(sTab,B)
@@ -131,14 +131,16 @@ endfunction
 
 function [sTab,B]=prvniFazeRozUlohy(A,b)
     [m,n] = size(A);
+    
+    B = (n+1):(n+m);
+    
     sTab = zeros(m+1,n+m+1);
     sTab(1:m,1:n) = A;
-    sTab(1:m,(n+1):(n+m)) = eye(m,m);
+    sTab(1:m,B) = eye(m,m);
     sTab(1:m,$) = b;
     // sTab($,1:n) = c; // c pouzijeme jine: c=(0,...,0,1,...,1)
-    // sTab($,(n+1):(n+m)) = 1; // takovy vektor je treba jeste eliminovat
+    // sTab($,B) = 1; // takovy vektor je treba jeste eliminovat
     sTab($,1:n) = (-1.*ones(1,m))*A;
-    
     sTab($,$) = -ones(1,m)*b; // -h=-(ctb.xbb)=-(ct.xb) 
 endfunction
 
@@ -157,7 +159,7 @@ function [subTab,B]=upravBaziDoRozsahu1n(sTab,B)
         // najdu v radku jiny nenulovy prvek a tim zeliminuji
         //nenula = ranN(subTab(r,1:n) <> 0);
         // budu tim delit, tak vezmu ten nejvetsi; num. stab. doufam
-        [v,s] = min(abs(subTab(r,1:n));
+        [v,s] = min(abs(subTab(r,1:n)));
         // konecne eliminuji pivotem
         subTab = eliminuj(subTab,r,s);
         // zaznamenam do baze
@@ -181,11 +183,17 @@ function [subTab,B] = rozsirenaUloha(A,b)
 endfunction
 
 function sTab=tabulkaPuvodniUlohy(subTab,c,B)
+    [d,e] = size(subTab);
+    m = d-1;
+    n = e-1;
+    
     sTab = subTab;
     sTab($,1:n) = c;
     sTab($,$) = 0; // -h=-(ctb.xbb)=-(ct.xb) 
-    for r=B
-        sTab = liminuj(sTab,r,B(s));
+    disp(sTab);
+    for r=1:m
+        disp([r,B(r)]);
+        sTab = eliminuj(sTab,r,B(r));
     end
 endfunction
 
@@ -195,71 +203,3 @@ function [A,b,c]=testZadani()
     b = [1;2;3;4;5];
     c = -[4,5,1,2,4,2,4,1,3,4];
 endfunction
-
-/*
-
-(* Rozsirena uloha *)
-PrvniFaze[A_] := Module[{m,n,I,AI,B,c},
-  {m,n}=Dimensions[A];
-
-  I=IdentityMatrix[m];
-  AI=ArrayFlatten[{{A,I}}];
-  B=Range[n+1,n+m];
-  c=Join[ConstantArray[-1,m].A,ConstantArray[0,m]];
-
-  {AI,B,c}
-];
-
-RozsirenaUloha[A_,b_,c_]:=
-Module[{AI,B,chp,sTab,xx,stav,min,skmn,m,n,l,i,j,d1,d2,newA,newb,newc,x},
-  (*
-  Do tehle metody nejprve strkam jine c. Pak ziskam B, podle nej spoctu Ap, bp, cp. To jsou vstupy do simplexove metody. 
-
-  Chtelo by to zkontrolovat cely postup od zacatku az do konce. 
-
-  *)
-
-  (* Rozsirim matici *)
-  {AI,B,chp}=PrvniFaze[A];
-  Print[MatrixForm[AI]];
-
-  {B,sTab,xx,stav} = SimplexovaMetoda[AI,b,chp,B];
-  Print[MatrixForm[sTab]];
-
-  {d1,d2}=Dimensions[sTab]; (* tohle je sTab obsahujici AI*)
-  min=(* minus *)sTab[[d1,d2]]; (* zajima me nula, kaslu na sgn*)
-  If[min!=0,Print["Neexistuje pøípustné øeení pùvodní úlohy"];,
-    (* ex. pripustne reseni *)
-    m=d1-1;n=d2-1; 
-    {m,n}=Dimensions[A];
-    (* indexy sloupcuKtereMusimNahradit *)
-    skmn = Select[Range[Dimensions[B][[1]]],B[[#]]>n&]; 
-    If[skmn!={}, (* Moje B neni krasne pripraveno na 2.fazi *)
-      (* ty sloupce nemuzu jen tak smazat B= Select[B,#\[LessEqual]n&];*)
-      For[l=1,l<= Dimensions[skmn][[1]], l++,
-        (* !! v skmn jsou sloupce > n; i-ty radek bude asi ta jednicka? ve sloupci skmn? *)
-        i= skmn[[l]];
-        (* Tady chci zpivotovat podle nej. nenuloveho prvku v i-tem radku matici A a jeho sloupec pak pouzit jako bazi: 
-              vyberu a_ij .. nej. nenulovy prvek;
-              efektivne by slo treba vybirat mensi/vetsi, kvuli numerice
-         *)
-        j=Select[Range[n],sTab[[i,#]]!=0&,1][[1]]; 
-        (* prvkem a_ij zpivotuji *)
-        sTab=EliminacePivotem[sTab,i,j];
-        (* Tady musim vhodne nahradit prvek v bazi *)
-        B[[i]]=j;
-      ];
-    ]; 
-
-    (* Zde mam B pripraveno na reseni puvodni ulohy *)
-    (* Vytahnu novou matici A, vektory b,c *)
-    newA = sTab[[Range[m],Range[n]]];
-    newb = sTab[[Range[m],n+1]];
-
-    {B,sTab,x,stav} = SimplexovaMetoda[newA,newb,c,B];
-    {B,sTab,x,stav}
-  ];
-];
-
-
-*/
