@@ -163,7 +163,7 @@ function [subTab,B]=upravBaziDoRozsahu1n(sTab,B)
         // najdu v radku jiny nenulovy prvek a tim zeliminuji
         //nenula = ranN(subTab(r,1:n) <> 0);
         // budu tim delit, tak vezmu ten nejvetsi; num. stab. doufam
-        [v,s] = min(abs(subTab(r,1:n)));
+        [v,s] = max(abs(subTab(r,1:n)));
         // konecne eliminuji pivotem
         subTab = eliminuj(subTab,r,s);
         // zaznamenam do baze
