@@ -55,3 +55,8 @@ ya = y0./(e'*y0) // y^asterisk
 disp('Optimalni strategie a cena hry')
 xa,ya
 omega = xa'*A*ya
+
+
+// Otestujeme pomoci nahodnych strategii, ze tyto jsou optimalni
+exec('test_hry.sce');
+[x,y,res]=testHry(A,xa,ya,100000)
