@@ -36,7 +36,7 @@ function r=vyberRblandem(As,b)
     r = min(mza_r);
 endfunction
 
-function [r,s]=blandovoPravidlo(sTab,B)
+function [r,s]=blandovoPravidlo(sTab)
     c = sTab2c(sTab);
     b = sTab2b(sTab);
     
@@ -174,6 +174,7 @@ endfunction
 function [subTab,B] = rozsirenaUloha(A,b)
     [sTab,B] = prvniFazeRozUlohy(A,b);
     [sTab,B,optimalni] = simplexovaMetoda(sTab,B);
+    sTab=almostZero(sTab);
     
     minimum = -sTab($,$); // zajima me, jestli minimum je nula
     if minimum > 0
@@ -206,4 +207,8 @@ function [A,b,c]=testZadani()
     -1,0,-1,2,1,2,2,-1,3,2;1,2,-1,2,-1,1,3,0,1,1;3,-1,0,3,0,3,1,0,1,0];
     b = [1;2;3;4;5];
     c = -[4,5,1,2,4,2,4,1,3,4];
+endfunction
+
+function A=almostZero(A)
+    A(abs(A)<1D-15) = 0;
 endfunction
