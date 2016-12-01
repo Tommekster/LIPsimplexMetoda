@@ -175,8 +175,8 @@ function [subTab,B] = rozsirenaUloha(A,b)
     [sTab,B] = prvniFazeRozUlohy(A,b);
     [sTab,B,optimalni] = simplexovaMetoda(sTab,B);
     
-    minimum = sTab($,$); // zajima me, jestli minimum je nula
-    if minimum == 0
+    minimum = -sTab($,$); // zajima me, jestli minimum je nula
+    if minimum > 0
         disp('Neexistuje pripustne reseni puvodni ulohy');
         subTab = 0;
         B = 0;
